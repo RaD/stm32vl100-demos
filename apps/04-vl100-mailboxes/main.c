@@ -61,13 +61,25 @@ static msg_t onpress(void *arg) {
 
 
 // BUTTON HANDLER DEFINITION: BEGIN
+static VirtualTimer debounce_vt;
+
+/* Sends the message MSG_BUTTON_PRESSED. */
+static void debounced_send(void *arg) {
+  (void) arg;
+  chMBPostI(&mb, MSG_BUTTON_PRESSED);
+}
+
+/* ISR: make debouncing and send message with a virtual timer. */
 static void button_handler(EXTDriver *extp, expchannel_t channel)
 {
-    (void) extp;
-    (void) channel;
-    chSysLockFromIsr();
-    chMBPostI(&mb, MSG_BUTTON_PRESSED);
-    chSysUnlockFromIsr();
+  (void) extp;
+  (void) channel;
+  chSysLockFromIsr();
+  if (chVTIsArmedI(&debounce_vt)) {
+    chVTReset(&debounce_vt);
+  }
+  chVTSetI(&debounce_vt, MS2ST(200), debounced_send, NULL);
+  chSysUnlockFromIsr();
 }
 
 // Channel configuration.
