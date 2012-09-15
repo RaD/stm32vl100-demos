@@ -51,8 +51,6 @@ static msg_t onpress(void *arg) {
       blink_led(BLUE_LED, 100); // off
       blink_led(BLUE_LED, 100); // on
       blink_led(BLUE_LED, 100); // off
-      blink_led(BLUE_LED, 500); // on
-      blink_led(BLUE_LED, 100); // off
     }
   }
   return 0;
@@ -65,8 +63,7 @@ static VirtualTimer debounce_vt;
 
 /* Sends the message MSG_BUTTON_PRESSED. */
 static void debounced_send(void *arg) {
-  (void) arg;
-  chMBPostI(&mb, MSG_BUTTON_PRESSED);
+  chMBPostI(&mb, (int) arg);
 }
 
 /* ISR: make debouncing and send message with a virtual timer. */
@@ -78,7 +75,7 @@ static void button_handler(EXTDriver *extp, expchannel_t channel)
   if (chVTIsArmedI(&debounce_vt)) {
     chVTReset(&debounce_vt);
   }
-  chVTSetI(&debounce_vt, MS2ST(200), debounced_send, NULL);
+  chVTSetI(&debounce_vt, MS2ST(50), debounced_send, (void *)MSG_BUTTON_PRESSED);
   chSysUnlockFromIsr();
 }
 
